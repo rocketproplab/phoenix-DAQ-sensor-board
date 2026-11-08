@@ -2,15 +2,15 @@
 #define PT_H
 
 #include <Arduino.h>
+#include <Adafruit_ADS1X15.h>
 
 struct PT {
-  const char  *name; // "LOX/LNG/GN2 FLOW/VENT/PRES"
-  uint8_t     pin;   // "A0 ..."
-  double      range; // "pressure range, 0 ~ <range> psi"
-  double      voltageMin; // "V at 0 psi"
-  double      voltageMax; // "V at <range> psi"
-  double      analogRange; // "ADC range (0-4095 for ESP 32, so 4095)"
-  double      voltageRange; // "ADC full voltage (0-3.3V for ESP 32, so 3.3)"
+  const char*        name;
+  Adafruit_ADS1015*  adc;
+  uint8_t            channel;
+  double             pressureRange;
+  double             voltageMin;
+  double             voltageMax;
 };
 
 // Initialize PT state

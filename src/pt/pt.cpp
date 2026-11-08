@@ -1,14 +1,23 @@
+// I2C ADC
+#include <Wire.h>
+#include <Adafruit_ADS1X15.h>
+
 #include "pt.h"
 
+// Instantiate the ADCs. The number in their names are their I2C addresses.
+// Change the names if you change their addresses
+static Adafruit_ADS1015 ads_48;
+static Adafruit_ADS1015 ads_49;
+
 static PT pts[] = {
-  // name,            pin,  range,  voltageMin, voltageMax, analogRange,  voltageRange
-  { "GN2",            A0,   5000.0, 0.5,        4.5,        4095.0,       3.3 },
-  { "LOX-UPSTREAM",   A6,   1000.0, 1.0,        5.0,        4095.0,       3.3 },
-  { "LNG-UPSTREAM",   A4,   1000.0, 1.0,        5.0,        4095.0,       3.3 },
-  { "LOX-DOWNSTREAM", A5,   1000.0, 1.0,        5.0,        4095.0,       3.3 },
-  { "LNG-DOWNSTREAM", A3,   1500.0, 0.5,        4.5,        4095.0,       3.3 },
-  { "LOX-DOME",       A2,   1500.0, 0.5,        4.5,        4095.0,       3.3 },
-  { "LNG-DOME",       A1,   1500.0, 0.5,        4.5,        4095.0,       3.3 },
+  // name,            *adc,    channel, pressureRange, voltageMin, voltageMax
+  { "GN2",            &ads_48, 0,       5000.0,        0.5,        4.5 },
+  { "LOX-UPSTREAM",   &ads_48, 1,       1000.0,        1.0,        5.0 },
+  { "LNG-UPSTREAM",   &ads_48, 2,       1000.0,        1.0,        5.0 },
+  { "LOX-DOWNSTREAM", &ads_48, 3,       1000.0,        1.0,        5.0 },
+  { "LNG-DOWNSTREAM", &ads_49, 0,       1500.0,        0.5,        4.5 },
+  { "LOX-DOME",       &ads_49, 1,       1500.0,        0.5,        4.5 },
+  { "LNG-DOME",       &ads_49, 2,       1500.0,        0.5,        4.5 },
 };
 
 // All PTs divided by one PT
@@ -20,12 +29,12 @@ static inline bool valid(uint8_t id) {
 }
 
 void setupPTs() {
-  for (uint8_t i = 0; i < NUM_PTS; i++) {
-    pinMode(pts[i].pin, INPUT);
-  }
+  // Initialize the ADC hardware
+  ads_48.begin(0x48);
+  ads_49.begin(0x49);
 }
 
-uint8_t countPTs() {
+inline uint8_t countPTs() {
   return NUM_PTS;
 }
 
@@ -43,13 +52,17 @@ double readPT(uint8_t id) {
   if (!valid(id)) return 0.0;
   const PT& p = pts[id];
 
-  double v = (analogRead(p.pin) / p.analogRange) * p.voltageRange;
+  // Let the Adafruit library handle the analogRange and voltageRange math
+  int16_t rawVoltage = p.adc->readADC_SingleEnded(p.channel);
+  double voltage = p.adc->computeVolts(rawVoltage);
+
   double denom = (p.voltageMax - p.voltageMin);
-  if (denom <= 0.0) return 0.0; // why...
+  if (denom <= 0.0) return 0.0; // still don't know why
 
-  double pres = (v - p.voltageMin)/denom * p.range;
+  // Map the read voltage to the physical pressure range
+  double pressure = ((voltage - p.voltageMin) / denom) * p.pressureRange;
 
-  if (pres <= 0.0) return 0.0;
-  if (pres > p.range) return p.range; // clamp, just in case
+  if (pressure <= 0.0) return 0.0;
+  if (pressure > p.pressureRange) return p.pressureRange; // clamp
   return pres;
 }
