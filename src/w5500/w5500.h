@@ -267,7 +267,10 @@ private:
      */
     void wizchip_recv_ignore(uint16_t len);
 
-
+    // Prevents name collision with ESP32 drivers
+    #ifdef MR
+    #undef MR
+    #endif
 
     /** Common registers */
     enum {

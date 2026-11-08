@@ -89,7 +89,7 @@ void sendSensorData() {
 
   // Send data
 
-  char *data = dataOut.c_str();
+  const char *data = dataOut.c_str();
   int len = strlen(data);
   memset(&f, 0, sizeof(f)); // set to 0
   memcpy(f.dstMac, MAC_GROUND_STATION, 6);
