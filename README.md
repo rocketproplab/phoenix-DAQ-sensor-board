@@ -1,4 +1,4 @@
-# phoenix-flight-computer
+# phoenix-DAQ-sensor-board
 Flight computer sensor board firmware for Rocket Propulsion Lab's flagship liquid-propellant rocket **Phoenix**.
 
 This system:
