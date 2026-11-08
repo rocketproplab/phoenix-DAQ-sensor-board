@@ -29,7 +29,7 @@ static inline bool valid(uint8_t id) {
 }
 
 void setupPTs() {
-  // Explicitly start the I2C bus on the exact schematic pins for the sensor board (SDA = 21, SCL = 22)
+  // Explicitly start the I2C bus on the exact schematic GPIO (NOT IC) pins for the sensor board (SDA = 21, SCL = 22)
   Wire.begin(21, 22);
 
   // Initialize the ADC hardware
