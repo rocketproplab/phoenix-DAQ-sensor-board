@@ -29,12 +29,15 @@ static inline bool valid(uint8_t id) {
 }
 
 void setupPTs() {
+  // Explicitly start the I2C bus on the exact schematic pins for the sensor board (SDA = 21, SCL = 22)
+  Wire.begin(21, 22);
+
   // Initialize the ADC hardware
   ads_48.begin(0x48);
   ads_49.begin(0x49);
 }
 
-inline uint8_t countPTs() {
+uint8_t countPTs() {
   return NUM_PTS;
 }
 
@@ -53,8 +56,8 @@ double readPT(uint8_t id) {
   const PT& p = pts[id];
 
   // Let the Adafruit library handle the analogRange and voltageRange math
-  int16_t rawVoltage = p.adc->readADC_SingleEnded(p.channel);
-  double voltage = p.adc->computeVolts(rawVoltage);
+  int16_t adcData = p.adc->readADC_SingleEnded(p.channel);
+  double voltage = p.adc->computeVolts(adcData);
 
   double denom = (p.voltageMax - p.voltageMin);
   if (denom <= 0.0) return 0.0; // still don't know why
@@ -64,5 +67,5 @@ double readPT(uint8_t id) {
 
   if (pressure <= 0.0) return 0.0;
   if (pressure > p.pressureRange) return p.pressureRange; // clamp
-  return pres;
+  return pressure;
 }
